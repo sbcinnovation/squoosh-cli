@@ -46,14 +46,17 @@ function clamp(v, min, max) {
   return v;
 }
 
-const suffix = ['B', 'KB', 'MB'];
+const suffix = [ 'B', 'KB', 'MB' ];
+
 function prettyPrintSize(size) {
   const base = Math.floor(Math.log2(size) / 10);
   const index = clamp(base, 0, 2);
   return (size / 2 ** (10 * index)).toFixed(2) + suffix[index];
 }
 
-function progressTracker(results) {
+// Shows a fancy output. Used only for small file counts, larger counts glitch
+// and create unreadable outputs.
+function prettyProgressTracker(results) {
   const spinner = ora();
   const tracker = {};
   tracker.spinner = spinner;
@@ -74,17 +77,24 @@ function progressTracker(results) {
     );
     update();
   };
+
   function update() {
     spinner.text = progress + kleur.bold(status) + getResultsText();
   }
+
   tracker.finish = (text) => {
     spinner.succeed(kleur.bold(text) + getResultsText());
   };
+
   function getResultsText() {
     let out = '';
     for (const result of results.values()) {
       out += `\n ${kleur.cyan(result.file)}: ${prettyPrintSize(result.size)}`;
-      for (const { outputFile, size: outputSize, infoText } of result.outputs) {
+      for (const {
+        outputFile,
+        size: outputSize,
+        infoText
+      } of result.outputs) {
         out += `\n  ${kleur.dim('└')} ${kleur.cyan(
           outputFile.padEnd(5),
         )} → ${prettyPrintSize(outputSize)}`;
@@ -97,8 +107,18 @@ function progressTracker(results) {
     }
     return out || '\n';
   }
+
   spinner.start();
   return tracker;
+}
+
+// Generates plain and boring output. Used when process large amounts of files.
+function plainProgressTracker() {
+  return {
+    setStatus: (status) => console.log(kleur.bold('Status:'), status),
+    setProgress: (current, total) => console.log('Progress:', `${current}/${total}`),
+    finish: () => console.log('Processing complete.'),
+  };
 }
 
 async function getInputFiles(paths) {
@@ -107,19 +127,21 @@ async function getInputFiles(paths) {
   for (const inputPath of paths) {
     const files = (await fsp.lstat(inputPath)).isDirectory()
       ? (await fsp.readdir(inputPath, { withFileTypes: true }))
-          .filter((dirent) => dirent.isFile())
-          .map((dirent) => path.join(inputPath, dirent.name))
-      : [inputPath];
+        .filter((dirent) => dirent.isFile())
+        .map((dirent) => path.join(inputPath, dirent.name))
+      : [ inputPath ];
     for (const file of files) {
       try {
         await fsp.stat(file);
-      } catch (err) {
+      }
+      catch (err) {
         if (err.code === 'ENOENT') {
           console.warn(
             `Warning: Input file does not exist: ${path.resolve(file)}`,
           );
           continue;
-        } else {
+        }
+        else {
           throw err;
         }
       }
@@ -134,7 +156,8 @@ async function getInputFiles(paths) {
 async function processFiles(files) {
   try {
     files = await getInputFiles(files);
-  } catch (error) {
+  }
+  catch (error) {
     console.error('->', error);
     return process.exit(1);
   }
@@ -143,7 +166,13 @@ async function processFiles(files) {
   const imagePool = new ImagePool(threadCount);
 
   const results = new Map();
-  const progress = progressTracker(results);
+  let progress;
+  if (files.length < 16) {
+    progress = prettyProgressTracker(results);
+  }
+  else {
+    progress = plainProgressTracker(results);
+  }
 
   progress.setStatus('Decoding...');
 
@@ -216,7 +245,7 @@ async function processFiles(files) {
       const outputPath = path.join(
         program.opts().outputDir,
         path.basename(originalFile, path.extname(originalFile)) +
-          program.opts().suffix,
+        program.opts().suffix,
       );
       for (const output of Object.values(image.encodedWith)) {
         const outputFile = `${outputPath}.${(await output).extension}`;
@@ -265,11 +294,11 @@ program
   });
 
 // Create a CLI option for each supported preprocessor
-for (const [key, value] of Object.entries(preprocessors)) {
+for (const [ key, value ] of Object.entries(preprocessors)) {
   program.option(`--${key} [config]`, value.description);
 }
 // Create a CLI option for each supported encoder
-for (const [key, value] of Object.entries(encoders)) {
+for (const [ key, value ] of Object.entries(encoders)) {
   program.option(
     `--${key} [config]`,
     `Use ${value.name} to generate a .${value.extension} file with the given configuration`,
