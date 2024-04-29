@@ -34,9 +34,9 @@ $ squoosh-cli <options...>
 Usage: squoosh-cli [options] <files...>
 
 Options:
-  -V, --version                                          output the version number
   -d, --output-dir <dir>                                 Output directory (default: ".")
   -s, --suffix <suffix>                                  Append suffix to output files (default: "")
+  -c, --max-concurrent-files <count>                     Amount of files to process at once (defaults to your CPU core count)
   --max-optimizer-rounds <rounds>                        Maximum number of compressions to use for auto optimizations (default: "6")
   --optimizer-butteraugli-target <butteraugli distance>  Target Butteraugli distance for auto optimizer (default: "1.4")
   --resize [config]                                      Resize the image before compressing
@@ -48,7 +48,8 @@ Options:
   --jxl [config]                                         Use JPEG-XL to generate a .jxl file with the given configuration
   --wp2 [config]                                         Use WebP2 to generate a .wp2 file with the given configuration
   --oxipng [config]                                      Use OxiPNG to generate a .png file with the given configuration
-  -h, --help                                             display help for command
+  -V, --version                                          Output associated version numbers
+  -h, --help                                             Display help for command
 ```
 
 The default values for each `config` option can be found in the [`codecs.ts`][codecs.ts] file under `defaultEncoderOptions`. Every unspecified value will use the default value specified here. _Better documentation is needed here._
