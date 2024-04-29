@@ -162,7 +162,7 @@ async function getInputFiles(paths) {
   return validFiles;
 }
 
-async function processAllFiles(allFiles) {
+async function processAllFiles(allFiles, maxConcurrentFiles) {
   try {
     allFiles = await getInputFiles(allFiles);
   }
@@ -173,24 +173,26 @@ async function processAllFiles(allFiles) {
 
   const results = new Map();
 
-  if (allFiles.length < prettyLogLimit && allFiles.length < coreCount) {
+  if (allFiles.length < prettyLogLimit && allFiles.length < maxConcurrentFiles) {
     const progress = prettyProgressTracker(results);
-    return await processBatch(allFiles, progress, coreCount, results);
+    return await processBatch(allFiles, progress, maxConcurrentFiles, results);
   }
   else {
     const progress = plainProgressTracker(results);
-    console.log(kleur.bold(`Will process at most ${coreCount} files at a time.`));
+    console.log(
+      kleur.bold(`Will process at most ${maxConcurrentFiles} files at a time`),
+    );
 
-    const iterations = Math.ceil(allFiles.length / coreCount);
+    const iterations = Math.ceil(allFiles.length / maxConcurrentFiles);
     for (let i = 0; i < iterations; i++) {
-      const offsetStart = i * coreCount;
-      const offsetEnd = offsetStart + coreCount;
+      const offsetStart = i * maxConcurrentFiles;
+      const offsetEnd = offsetStart + maxConcurrentFiles;
       const fileBatch = allFiles.slice(offsetStart, offsetEnd);
       console.log(
         `Processing batch ${i + 1} of ${iterations} ` +
         `(images ${offsetStart + 1} through ${offsetStart + fileBatch.length})`,
       );
-      await processBatch(fileBatch, progress, coreCount, results);
+      await processBatch(fileBatch, progress, maxConcurrentFiles, results);
       console.log();
     }
   }
@@ -297,6 +299,11 @@ program
   .option('-d, --output-dir <dir>', 'Output directory', '.')
   .option('-s, --suffix <suffix>', 'Append suffix to output files', '')
   .option(
+    '-c, --max-concurrent-files <count>',
+    'Amount of files to process at once (defaults to CPU cores)',
+    coreCount,
+  )
+  .option(
     '--max-optimizer-rounds <rounds>',
     'Maximum number of compressions to use for auto optimizations',
     '6',
@@ -308,12 +315,13 @@ program
   )
   .action((files) => {
     const outputDir = program.opts().outputDir;
+    const maxConcurrentFiles = parseInt(program.opts().maxConcurrentFiles);
     fs.mkdir(outputDir, { recursive: true }, async (error) => {
       if (error) {
         console.error(error);
         return process.exit(1);
       }
-      await processAllFiles(files);
+      await processAllFiles(files, maxConcurrentFiles);
     });
   });
 
