@@ -9,10 +9,31 @@ import { cpus } from 'os';
 import ora from 'ora';
 import kleur from 'kleur';
 import EventEmitter from 'events';
+import { fileURLToPath } from 'url';
 
 import { ImagePool, preprocessors, encoders } from '@frostoven/libsquoosh';
 // import { ImagePool, preprocessors, encoders } from '../../libsquoosh/build/index.js';
 
+let cliVersion;
+let libVersion;
+try {
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  const packageJson = JSON.parse(fs.readFileSync(
+    `${__dirname}/../package.json`).toString(),
+  );
+  const libJson = JSON.parse(fs.readFileSync(
+    `${__dirname}/../node_modules/@frostoven/libsquoosh/package.json`).toString(),
+  );
+  cliVersion = 'v' + packageJson.version;
+  libVersion = 'v' + libJson.version;
+}
+catch (_) {
+  cliVersion = 'Version: unknown';
+  libVersion = 'Version: unknown';
+}
+
+const threadCount = cpus().length;
 EventEmitter.defaultMaxListeners = 64;
 
 process.on('unhandledRejection', (reason, promise) => {
@@ -118,7 +139,8 @@ async function processFiles(files) {
     return process.exit(1);
   }
 
-  const imagePool = new ImagePool(cpus().length);
+  console.log('Thread count:', threadCount);
+  const imagePool = new ImagePool(threadCount);
 
   const results = new Map();
   const progress = progressTracker(results);
@@ -254,4 +276,9 @@ for (const [key, value] of Object.entries(encoders)) {
   );
 }
 
+program.version(
+  `CLI version:        ${cliVersion}\n` +
+  `libSquoosh version: ${libVersion}\n` +
+  `Node version:       ${process.version}`,
+);
 program.parse(process.argv);
