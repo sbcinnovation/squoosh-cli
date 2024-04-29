@@ -4,10 +4,19 @@ import { threads } from 'wasm-feature-detect';
 import { cpus } from 'os';
 
 // We use `navigator.hardwareConcurrency` for Emscripten’s pthread pool size.
-// This is the only workaround I can get working without crying.
-(globalThis as any).navigator = {
-  hardwareConcurrency: cpus().length,
-};
+// At this point exists more for backwards compatibility, modern Node disallows
+// setting this.
+const currentGlobal = (globalThis as any);
+if (typeof currentGlobal?.navigator?.hardwareConcurrency === 'undefined') {
+  try {
+    currentGlobal.navigator = {
+      hardwareConcurrency: cpus().length,
+    };
+  }
+  catch (error) {
+    console.warn('Warning: Failed to set navigator.hardwareConcurrency.');
+  }
+}
 
 interface DecodeModule extends EmscriptenWasm.Module {
   decode: (data: Uint8Array) => ImageData;
