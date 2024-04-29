@@ -33,7 +33,8 @@ catch (_) {
   libVersion = 'Version: unknown';
 }
 
-const threadCount = cpus().length;
+const coreCount = cpus().length;
+const prettyLogLimit = 16;
 EventEmitter.defaultMaxListeners = 64;
 
 process.on('unhandledRejection', (reason, promise) => {
@@ -112,11 +113,19 @@ function prettyProgressTracker(results) {
   return tracker;
 }
 
-// Generates plain and boring output. Used when process large amounts of files.
+// Generates plain and boring output. Used when processing large amounts of
+// files.
 function plainProgressTracker() {
   return {
     setStatus: (status) => console.log(kleur.bold('Status:'), status),
-    setProgress: (current, total) => console.log('Progress:', `${current}/${total}`),
+    setProgress: (current, total, file) => {
+      if (file) {
+        console.log('Progress:', `${current}/${total} (${file})`);
+      }
+      else {
+        console.log('Working...');
+      }
+    },
     finish: () => console.log('Processing complete.'),
   };
 }
@@ -153,31 +162,46 @@ async function getInputFiles(paths) {
   return validFiles;
 }
 
-async function processFiles(files) {
+async function processAllFiles(allFiles) {
   try {
-    files = await getInputFiles(files);
+    allFiles = await getInputFiles(allFiles);
   }
   catch (error) {
     console.error('->', error);
     return process.exit(1);
   }
 
-  console.log('Thread count:', threadCount);
-  const imagePool = new ImagePool(threadCount);
-
   const results = new Map();
-  let progress;
-  if (files.length < 16) {
-    progress = prettyProgressTracker(results);
+
+  if (allFiles.length < prettyLogLimit && allFiles.length < coreCount) {
+    const progress = prettyProgressTracker(results);
+    return await processBatch(allFiles, progress, coreCount, results);
   }
   else {
-    progress = plainProgressTracker(results);
+    const progress = plainProgressTracker(results);
+    console.log(kleur.bold(`Will process at most ${coreCount} files at a time.`));
+
+    const iterations = Math.ceil(allFiles.length / coreCount);
+    for (let i = 0; i < iterations; i++) {
+      const offsetStart = i * coreCount;
+      const offsetEnd = offsetStart + coreCount;
+      const fileBatch = allFiles.slice(offsetStart, offsetEnd);
+      console.log(
+        `Processing batch ${i + 1} of ${iterations} ` +
+        `(images ${offsetStart + 1} through ${offsetStart + fileBatch.length})`,
+      );
+      await processBatch(fileBatch, progress, coreCount, results);
+      console.log();
+    }
   }
+}
 
-  progress.setStatus('Decoding...');
+async function processBatch(files, progressTracker, threadCount, results) {
+  const imagePool = new ImagePool(threadCount);
+  progressTracker.setStatus('Decoding');
 
-  progress.totalOffset = files.length;
-  progress.setProgress(0, files.length);
+  progressTracker.totalOffset = files.length;
+  progressTracker.setProgress(0, files.length);
 
   let decoded = 0;
   let decodedFiles = await Promise.all(
@@ -190,7 +214,7 @@ async function processFiles(files) {
         size: decodedImage.size,
         outputs: [],
       });
-      progress.setProgress(++decoded, files.length);
+      progressTracker.setProgress(++decoded, files.length, file);
       return image;
     }),
   );
@@ -212,11 +236,11 @@ async function processFiles(files) {
 
   await Promise.all(decodedFiles.map((image) => image.decoded));
 
-  progress.progressOffset = decoded;
-  progress.setStatus(
+  progressTracker.progressOffset = decoded;
+  progressTracker.setStatus(
     'Encoding ' + kleur.dim(`(${imagePool.workerPool.numWorkers} threads)`),
   );
-  progress.setProgress(0, files.length);
+  progressTracker.setProgress(0, files.length);
 
   const jobs = [];
   let jobsStarted = 0;
@@ -254,17 +278,17 @@ async function processFiles(files) {
           .get(image)
           .outputs.push(Object.assign(await output, { outputFile }));
       }
-      progress.setProgress(jobsFinished, jobsStarted);
+      progressTracker.setProgress(jobsFinished, jobsStarted, originalFile);
     });
     jobs.push(job);
   }
 
   // update the progress to account for multi-format
-  progress.setProgress(jobsFinished, jobsStarted);
+  progressTracker.setProgress(jobsFinished, jobsStarted);
   // Wait for all jobs to finish
   await Promise.all(jobs);
   await imagePool.close();
-  progress.finish('Squoosh results:');
+  progressTracker.finish('Squoosh results:');
 }
 
 program
@@ -289,7 +313,7 @@ program
         console.error(error);
         return process.exit(1);
       }
-      await processFiles(files);
+      await processAllFiles(files);
     });
   });
 
