@@ -1,6 +1,6 @@
 {
   "name": "@frostoven/squoosh-cli",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "A CLI for Squoosh",
   "public": true,
   "type": "module",
@@ -10,13 +10,20 @@
     "url": "git@github.com:frostoven/Squoosh-with-CLI.git"
   },
   "bin": {
-    "squoosh-cli": "src/index.js",
-    "@frostoven/squoosh-cli": "src/index.js"
+    "squoosh-cli": "src/prod.js",
+    "@frostoven/squoosh-cli": "src/prod.js",
+    "@frostoven/squoosh-cli-debug": "src/debug.js"
   },
   "files": [
-    "/src/index.js"
+    "/src/index.js",
+    "/src/prod.js"
   ],
-  "keywords": [],
+  "keywords": [
+    "image",
+    "optimisation",
+    "optimization",
+    "squoosh"
+  ],
   "author": "Google Chrome Developers <chromium-dev@google.com>",
   "license": "Apache-2.0",
   "engines": {
