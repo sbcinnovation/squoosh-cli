@@ -36,7 +36,8 @@ Major changes:
 * Fixes an issue where the original Squoosh CLI would attempt to consume all
   target images at once, causing Node to crash when dealing with data exceeding
   ~500MB (the max concurrent image limit is now automatically set to your CPU
-  core count, override with `-c your_number`).
+  core count, override with `-c your_number`). This fork has been confirmed to
+  work with datasets exceeding 10GB containing thousands of images.
 * Fixes an issue where the CLI terminal output would corrupt when processing a
   large amount of images.
 * The original CLI tool ignored almost all custom user options. This is
