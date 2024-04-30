@@ -193,6 +193,7 @@ async function processAllFiles(allFiles, maxConcurrentFiles) {
         `(images ${offsetStart + 1} through ${offsetStart + fileBatch.length})`,
       );
       await processBatch(fileBatch, progress, maxConcurrentFiles, results);
+      results.clear();
       console.log();
     }
   }
