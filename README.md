@@ -27,6 +27,22 @@ Please consider
 to get more hands on deck; I would like to hire someone to work on this project
 full-time so that it may reach its full potential.
 
+### Change from the original
+
+First off, I'd like to give a huge thank you to everyone who has contributed to
+this fork!
+
+Major changes:
+* Fixes an issue where the original Squoosh CLI would attempt to consume all
+  target images at once, causing Node to crash when dealing with data exceeding
+  ~500MB (the max concurrent image limit is now automatically set to your CPU
+  core count, override with `-c your_number`).
+* Fixes an issue where the CLI terminal output would corrupt when processing a
+  large amount of images.
+* The original CLI tool ignored almost all custom user options. This is
+  (hopefully) completely fixed now.
+* This fork adds Node 18+ support.
+
 ### Build info
 
 **Important:** Always delete `.tmp` and `build` before doing a prod build, and
