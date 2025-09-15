@@ -9,6 +9,9 @@
     "type": "git",
     "url": "git@github.com:sbcinnovation/squoosh-cli.git"
   },
+  "scripts": {
+    "dev": "node ./src/debug.js --webp '{}' ../codecs/example.png"
+  },
   "bin": {
     "squoosh-cli": "src/prod.js",
     "@frostoven/squoosh-cli": "src/prod.js",
