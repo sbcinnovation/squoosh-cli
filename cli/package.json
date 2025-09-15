@@ -10,7 +10,7 @@
     "url": "git@github.com:sbcinnovation/squoosh-cli.git"
   },
   "scripts": {
-    "dev": "node ./src/debug.js --webp '{}' ../codecs/example.png"
+    "dev": "bun ./src/debug.js --webp '{}' ../codecs/example.png"
   },
   "bin": {
     "squoosh-cli": "src/prod.js",
@@ -29,14 +29,19 @@
   ],
   "author": "Google Chrome Developers <chromium-dev@google.com>",
   "license": "Apache-2.0",
-  "engines": {
-    "node": ">=16.0.0"
-  },
   "dependencies": {
     "@frostoven/libsquoosh": "^0.4.8",
     "commander": "7.2.0",
     "json5": "2.2.0",
     "kleur": "4.1.4",
     "ora": "5.4.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.22"
+  },
+  "module": "src/index.js",
+  "private": true,
+  "peerDependencies": {
+    "typescript": "^5"
   }
 }
