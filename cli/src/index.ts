@@ -378,8 +378,11 @@ async function processBatch(
 }
 
 cli
-  .name('squoosh-cli')
-  .arguments('<files...>')
+  .name('squoosh')
+  .description(
+    'Convert and optimize images locally using fast WebAssembly codecs. Config accepts JSON/JSON5 or "auto".',
+  )
+  .arguments('[files...]')
   .option('-d, --output-dir <dir>', 'Output directory', '.')
   .option('-s, --suffix <suffix>', 'Append suffix to output files', '')
   .option(
@@ -406,6 +409,11 @@ cli
         console.error(error);
         return process.exit(1);
       }
+      if (!files || files.length === 0) {
+        console.log(kleur.yellow('No input files specified. Showing help...'));
+        cli.outputHelp();
+        return process.exit(0);
+      }
       await processAllFiles(files, maxConcurrentFiles, opts);
     });
   });
@@ -427,4 +435,14 @@ cli.version(
     `libSquoosh version: ${libVersion}\n` +
     `Node version:       ${process.version}`,
 );
+(cli as any).showHelpAfterError?.(true);
+cli.addHelpText(
+  'afterAll',
+  `\nExamples:\n  $ squoosh --avif auto image.jpg\n  $ squoosh --webp '{"quality":80}' assets/*.png\n  $ squoosh --resize '{"width":1200,"method":"lanczos3"}' --mozjpeg auto photos/\n  $ squoosh -d out -s .min --webp auto --avif '{"cqLevel":28}' images/**/*.{png,jpg,jpeg}\n\nNotes:\n  - Config accepts JSON/JSON5 (single quotes often help avoid shell escaping).\n  - Use your shell for globs (e.g. *.png) or pass directories to process all files within.\n  - Supported encoders: avif, webp, mozjpeg, jxl, wp2, oxipng.\n  - Preprocessors: resize, quant, rotate.`,
+);
+// If invoked without any args, show help immediately
+if (process.argv.length <= 2) {
+  cli.outputHelp();
+  process.exit(0);
+}
 cli.parse(process.argv);
