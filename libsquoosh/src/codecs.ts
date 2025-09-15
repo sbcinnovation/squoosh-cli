@@ -401,7 +401,10 @@ export const codecs = {
     dec: () =>
       instantiateEmscriptenWasm(avifDec as DecodeModuleFactory, avifDecWasm),
     enc: async () => {
-      if (await threads()) {
+      // Bun currently has issues instantiating the multithreaded AVIF wasm worker.
+      // Prefer single-threaded encoder when running under Bun.
+      const isBun = typeof (globalThis as any).Bun !== 'undefined';
+      if ((await threads()) && !isBun) {
         return instantiateEmscriptenWasm(
           avifEncMt as EmscriptenWasm.ModuleFactory<AVIFEncodeModule>,
           avifEncMtWasm,
@@ -444,6 +447,10 @@ export const codecs = {
       ),
     defaultEncoderOptions: {
       speed: 4,
+      // The wasm expects these optional fields to be present; set safe defaults
+      effort: 4,
+      photonNoiseIso: 0,
+      lossyModular: false,
       quality: 75,
       progressive: false,
       epf: -1,
