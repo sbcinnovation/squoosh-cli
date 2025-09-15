@@ -19,3 +19,4 @@ dist
 example.webp
 # Added by goreleaser init:
 dist/
+examples/

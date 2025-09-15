@@ -48,4 +48,13 @@ export default {
     }),
   ],
   external: [...builtinModules, 'web-streams-polyfill'],
+  onwarn(warning, warn) {
+    if (
+      warning.code === 'UNRESOLVED_IMPORT' &&
+      /embed-assets/.test(String(warning.source))
+    ) {
+      return;
+    }
+    warn(warning);
+  },
 };

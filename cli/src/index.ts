@@ -16,6 +16,9 @@ import {
   preprocessors,
   encoders,
 } from '../../libsquoosh/build/index';
+// Force-embed libsquoosh wasm and worker assets into single-file binary when compiled
+import '../../libsquoosh/build/embed-assets.js';
+
 import PolyfillImageData from '../../libsquoosh/src/image_data';
 import type { Command } from 'commander';
 

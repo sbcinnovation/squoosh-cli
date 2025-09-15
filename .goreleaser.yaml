@@ -4,6 +4,7 @@ before:
   hooks:
     - bun install
     - bun run build
+    - bun scripts/gen-embed.ts
 
 builds:
   - id: squoosh
@@ -20,8 +21,6 @@ builds:
     flags:
       - --compile
       - --minify
-      - --assets
-      - libsquoosh/build/**
     env:
       - NODE_ENV=production
 

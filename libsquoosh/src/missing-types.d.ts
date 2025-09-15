@@ -28,6 +28,8 @@ declare module 'chunk-url:../../codecs/avif/enc/avif_node_enc_mt.worker.js' {
   export default value;
 }
 
+// Generated at build-time to force Bun to embed assets; allow any path under build
+
 // These don't exist in NodeJS types so we're not able to use them but they are referenced in some emscripten and codec types
 // Thus, we need to explicitly assign them to be `never`
 // We're also not able to use the APIs that use these types
