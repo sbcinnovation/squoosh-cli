@@ -1,6 +1,7 @@
 {
   "name": "@sbcinnovation/squoosh-cli",
   "private": true,
+  "version": "0.8.0",
   "scripts": {
     "build": "rollup -c ./libsquoosh/rollup.config.js",
     "dev": "bun run build && bun ./cli/src/debug.ts",
