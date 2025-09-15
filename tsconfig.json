@@ -1,5 +1,18 @@
 {
-  "extends": "./generic-tsconfig.json",
-  "files": [],
-  "references": []
+  "compilerOptions": {
+    "target": "ES2019",
+    "downlevelIteration": true,
+    "module": "esnext",
+    "jsx": "react",
+    "jsxFactory": "h",
+    "strict": true,
+    "moduleResolution": "node",
+    "composite": true,
+    "declarationMap": true,
+    "baseUrl": "./",
+    "rootDir": "./",
+    "outDir": ".tmp/ts",
+    "allowSyntheticDefaultImports": true,
+    "paths": {}
+  }
 }
