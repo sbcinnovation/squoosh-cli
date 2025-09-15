@@ -108,7 +108,7 @@ async function encodeImage({
     };
   } else {
     const result = encoder.encode(
-      bitmapIn.data.buffer,
+      bitmapIn.data.buffer as ArrayBuffer,
       bitmapIn.width,
       bitmapIn.height,
       encConfig,
