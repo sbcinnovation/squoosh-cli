@@ -1,0 +1,3 @@
+[alias]
+"@sbcinnovation/libsquoosh" = "./libsquoosh/src/index.ts"
+"@/libsquoosh" = "./libsquoosh/src/index.ts"

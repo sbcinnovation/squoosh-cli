@@ -3,39 +3,11 @@
   "workspaces": {
     "": {
       "name": "sbc-squoosh-cli",
-      "devDependencies": {
-        "@types/bun": "latest",
-      },
-      "peerDependencies": {
-        "typescript": "^5",
-      },
-    },
-    "cli": {
-      "name": "@sbcinnovation/squoosh-cli",
-      "version": "0.9.1",
-      "bin": {
-        "squoosh-cli": "src/prod.js",
-        "@frostoven/squoosh-cli": "src/prod.js",
-        "@frostoven/squoosh-cli-debug": "src/debug.js",
-      },
       "dependencies": {
-        "@frostoven/libsquoosh": "^0.4.8",
         "commander": "7.2.0",
         "json5": "2.2.0",
         "kleur": "4.1.4",
         "ora": "5.4.0",
-      },
-      "devDependencies": {
-        "@types/bun": "^1.2.22",
-      },
-      "peerDependencies": {
-        "typescript": "^5",
-      },
-    },
-    "libsquoosh": {
-      "name": "@frostoven/libsquoosh",
-      "version": "0.4.8",
-      "dependencies": {
         "wasm-feature-detect": "^1.2.11",
         "web-streams-polyfill": "^3.0.3",
       },
@@ -45,12 +17,15 @@
         "@rollup/plugin-babel": "^5.3.0",
         "@rollup/plugin-commonjs": "^18.0.0",
         "@rollup/plugin-node-resolve": "^11.2.1",
+        "@types/bun": "latest",
         "@types/node": "^22.7.5",
-        "bun-types": "latest",
         "rollup": "^2.46.0",
         "rollup-plugin-terser": "^7.0.2",
         "typescript": "^5.6.2",
         "which": "^2.0.2",
+      },
+      "peerDependencies": {
+        "typescript": "^5",
       },
     },
   },
@@ -233,8 +208,6 @@
 
     "@babel/types": ["@babel/types@7.28.4", "", { "dependencies": { "@babel/helper-string-parser": "^7.27.1", "@babel/helper-validator-identifier": "^7.27.1" } }, "sha512-bkFqkLhh3pMBUQQkpVgWDWq/lqzc2678eUyDlTBhRqhCHFguYYGM0Efga7tYk4TogG/3x0EEl66/OQ+WGbWB/Q=="],
 
-    "@frostoven/libsquoosh": ["@frostoven/libsquoosh@workspace:libsquoosh"],
-
     "@jridgewell/gen-mapping": ["@jridgewell/gen-mapping@0.3.13", "", { "dependencies": { "@jridgewell/sourcemap-codec": "^1.5.0", "@jridgewell/trace-mapping": "^0.3.24" } }, "sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA=="],
 
     "@jridgewell/remapping": ["@jridgewell/remapping@2.3.5", "", { "dependencies": { "@jridgewell/gen-mapping": "^0.3.5", "@jridgewell/trace-mapping": "^0.3.24" } }, "sha512-LI9u/+laYG4Ds1TDKSJW2YPrIlcVYOwi2fUC6xB43lueCjgxV4lffOCZCtYFiH6TNOX+tQKXx97T4IKHbhyHEQ=="],
@@ -254,8 +227,6 @@
     "@rollup/plugin-node-resolve": ["@rollup/plugin-node-resolve@11.2.1", "", { "dependencies": { "@rollup/pluginutils": "^3.1.0", "@types/resolve": "1.17.1", "builtin-modules": "^3.1.0", "deepmerge": "^4.2.2", "is-module": "^1.0.0", "resolve": "^1.19.0" }, "peerDependencies": { "rollup": "^1.20.0||^2.0.0" } }, "sha512-yc2n43jcqVyGE2sqV5/YCmocy9ArjVAP/BeXyTtADTBBX6V0e5UMqwO8CdQ0kzjb6zu5P1qMzsScCMRvE9OlVg=="],
 
     "@rollup/pluginutils": ["@rollup/pluginutils@3.1.0", "", { "dependencies": { "@types/estree": "0.0.39", "estree-walker": "^1.0.1", "picomatch": "^2.2.2" }, "peerDependencies": { "rollup": "^1.20.0||^2.0.0" } }, "sha512-GksZ6pr6TpIjHm8h9lSQ8pi8BE9VeubNT0OMJ3B5uZJ8pz73NPiqOtCog/x2/QzM1ENChPKxMDhiQuRHsqc+lg=="],
-
-    "@sbcinnovation/squoosh-cli": ["@sbcinnovation/squoosh-cli@workspace:cli"],
 
     "@types/bun": ["@types/bun@1.2.22", "", { "dependencies": { "bun-types": "1.2.22" } }, "sha512-5A/KrKos2ZcN0c6ljRSOa1fYIyCKhZfIVYeuyb4snnvomnpFqC0tTsEkdqNxbAgExV384OETQ//WAjl3XbYqQA=="],
 

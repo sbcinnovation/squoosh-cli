@@ -13,6 +13,9 @@
     "rootDir": "./",
     "outDir": ".tmp/ts",
     "allowSyntheticDefaultImports": true,
-    "paths": {}
+    "paths": {
+      "@/libsquoosh": ["libsquoosh/src/index.ts"],
+      "@sbcinnovation/libsquoosh": ["libsquoosh/src/index.ts"]
+    }
   }
 }

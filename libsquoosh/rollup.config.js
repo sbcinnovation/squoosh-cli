@@ -7,12 +7,17 @@ import json from './lib/json-plugin.js';
 import autojson from './lib/autojson-plugin.js';
 import { getBabelOutputPlugin } from '@rollup/plugin-babel';
 import { builtinModules } from 'module';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /** @type {import('rollup').RollupOptions} */
 export default {
-  input: 'src/index.ts',
+  input: path.join(__dirname, 'src/index.ts'),
   output: {
-    dir: 'build',
+    dir: path.join(__dirname, 'build'),
     format: 'cjs',
     assetFileNames: '[name]-[hash][extname]',
   },
@@ -23,7 +28,7 @@ export default {
     asset(),
     autojson(),
     json(),
-    simpleTS('.'),
+    simpleTS(__dirname),
     getBabelOutputPlugin({
       babelrc: false,
       configFile: false,

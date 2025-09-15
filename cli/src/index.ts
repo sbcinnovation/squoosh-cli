@@ -11,7 +11,12 @@ import type { Ora } from 'ora';
 import kleur from 'kleur';
 import EventEmitter from 'events';
 
-import { ImagePool, preprocessors, encoders } from '@frostoven/libsquoosh';
+import {
+  ImagePool,
+  preprocessors,
+  encoders,
+} from '../../libsquoosh/build/index';
+import PolyfillImageData from '../../libsquoosh/src/image_data';
 import type { Command } from 'commander';
 
 // Type helpers derived from libsquoosh
@@ -58,18 +63,20 @@ interface ProgressTracker {
 let cliVersion: string;
 let libVersion: string;
 try {
+  // Ensure ImageData exists in Bun runtime
+  // @ts-ignore
+  if (typeof globalThis.ImageData === 'undefined') {
+    // @ts-ignore
+    globalThis.ImageData = PolyfillImageData as any;
+  }
   const __filename = Bun.fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
-  const packageJson = JSON.parse(fs.readFileSync(
-    `${__dirname}/../package.json`).toString(),
-  );
-  const libJson = JSON.parse(fs.readFileSync(
-    `${__dirname}/../node_modules/@frostoven/libsquoosh/package.json`).toString(),
+  const packageJson = JSON.parse(
+    fs.readFileSync(`${__dirname}/../../package.json`).toString(),
   );
   cliVersion = 'v' + packageJson.version;
-  libVersion = 'v' + libJson.version;
-}
-catch (_) {
+  libVersion = cliVersion;
+} catch (_) {
   cliVersion = 'Version: unknown';
   libVersion = 'Version: unknown';
 }
@@ -78,9 +85,12 @@ const coreCount = cpus().length;
 const prettyLogLimit = 16;
 EventEmitter.defaultMaxListeners = 64;
 
-process.on('unhandledRejection', (reason: unknown, promise: Promise<unknown>) => {
-  console.error(`Unhandled Rejection:`, promise, '\nTrace:', { reason });
-});
+process.on(
+  'unhandledRejection',
+  (reason: unknown, promise: Promise<unknown>) => {
+    console.error(`Unhandled Rejection:`, promise, '\nTrace:', { reason });
+  },
+);
 
 function clamp(v: number, min: number, max: number) {
   if (v < min) return min;
@@ -88,7 +98,7 @@ function clamp(v: number, min: number, max: number) {
   return v;
 }
 
-const suffix = [ 'B', 'KB', 'MB' ];
+const suffix = ['B', 'KB', 'MB'];
 
 function prettyPrintSize(size: number) {
   const base = Math.floor(Math.log2(size) / 10);
@@ -98,7 +108,9 @@ function prettyPrintSize(size: number) {
 
 // Shows a fancy output. Used only for small file counts, larger counts glitch
 // and create unreadable outputs.
-function prettyProgressTracker(results: Map<unknown, FileResultRecord>): ProgressTracker {
+function prettyProgressTracker(
+  results: Map<unknown, FileResultRecord>,
+): ProgressTracker {
   const spinner: Ora = ora();
   const tracker: ProgressTracker = {
     spinner,
@@ -136,11 +148,7 @@ function prettyProgressTracker(results: Map<unknown, FileResultRecord>): Progres
     let out = '';
     for (const result of results.values()) {
       out += `\n ${kleur.cyan(result.file)}: ${prettyPrintSize(result.size)}`;
-      for (const {
-        outputFile,
-        size: outputSize,
-        infoText
-      } of result.outputs) {
+      for (const { outputFile, size: outputSize, infoText } of result.outputs) {
         out += `\n  ${kleur.dim('└')} ${kleur.cyan(
           outputFile.padEnd(5),
         )} → ${prettyPrintSize(outputSize)}`;
@@ -164,12 +172,12 @@ function plainProgressTracker(): ProgressTracker {
   return {
     progressOffset: 0,
     totalOffset: 0,
-    setStatus: (status?: string) => console.log(kleur.bold('Status:'), status ?? ''),
+    setStatus: (status?: string) =>
+      console.log(kleur.bold('Status:'), status ?? ''),
     setProgress: (current: number, total: number, file?: string) => {
       if (file) {
         console.log('Progress:', `${current}/${total} (${file})`);
-      }
-      else {
+      } else {
         console.log('Working...');
       }
     },
@@ -183,22 +191,20 @@ async function getInputFiles(paths: string[]): Promise<string[]> {
   for (const inputPath of paths) {
     const files = (await fsp.lstat(inputPath)).isDirectory()
       ? (await fsp.readdir(inputPath, { withFileTypes: true }))
-        .filter((dirent) => dirent.isFile())
-        .map((dirent) => path.join(inputPath, dirent.name))
-      : [ inputPath ];
+          .filter((dirent) => dirent.isFile())
+          .map((dirent) => path.join(inputPath, dirent.name))
+      : [inputPath];
     for (const file of files) {
       try {
         await fsp.stat(file);
-      }
-      catch (err) {
+      } catch (err) {
         const error = err as NodeJS.ErrnoException;
         if (error.code === 'ENOENT') {
           console.warn(
             `Warning: Input file does not exist: ${path.resolve(file)}`,
           );
           continue;
-        }
-        else {
+        } else {
           throw err;
         }
       }
@@ -217,19 +223,26 @@ async function processAllFiles(
 ): Promise<void> {
   try {
     allFiles = await getInputFiles(allFiles);
-  }
-  catch (error) {
+  } catch (error) {
     console.error('->', error);
     return process.exit(1);
   }
 
   const results: Map<unknown, FileResultRecord> = new Map();
 
-  if (allFiles.length < prettyLogLimit && allFiles.length < maxConcurrentFiles) {
+  if (
+    allFiles.length < prettyLogLimit &&
+    allFiles.length < maxConcurrentFiles
+  ) {
     const progress = prettyProgressTracker(results);
-    return await processBatch(allFiles, progress, maxConcurrentFiles, results, opts);
-  }
-  else {
+    return await processBatch(
+      allFiles,
+      progress,
+      maxConcurrentFiles,
+      results,
+      opts,
+    );
+  } else {
     const progress = plainProgressTracker();
     console.log(
       kleur.bold(`Will process at most ${maxConcurrentFiles} files at a time`),
@@ -242,9 +255,17 @@ async function processAllFiles(
       const fileBatch = allFiles.slice(offsetStart, offsetEnd);
       console.log(
         `Processing batch ${i + 1} of ${iterations} ` +
-        `(images ${offsetStart + 1} through ${offsetStart + fileBatch.length})`,
+          `(images ${offsetStart + 1} through ${
+            offsetStart + fileBatch.length
+          })`,
       );
-      await processBatch(fileBatch, progress, maxConcurrentFiles, results, opts);
+      await processBatch(
+        fileBatch,
+        progress,
+        maxConcurrentFiles,
+        results,
+        opts,
+      );
       results.clear();
       console.log();
     }
@@ -282,7 +303,9 @@ async function processBatch(
 
   const preprocessOptions: Partial<Record<PreprocessorKey, any>> = {};
 
-  for (const preprocessorName of Object.keys(preprocessors) as PreprocessorKey[]) {
+  for (const preprocessorName of Object.keys(
+    preprocessors,
+  ) as PreprocessorKey[]) {
     if (!opts[preprocessorName]) {
       continue;
     }
@@ -331,10 +354,11 @@ async function processBatch(
       jobsFinished++;
       const outputPath = path.join(
         opts.outputDir,
-        path.basename(originalFile, path.extname(originalFile)) +
-        opts.suffix,
+        path.basename(originalFile, path.extname(originalFile)) + opts.suffix,
       );
-      for (const output of Object.values(image.encodedWith) as Array<Promise<EncodedCoreResult>>) {
+      for (const output of Object.values(image.encodedWith) as Array<
+        Promise<EncodedCoreResult>
+      >) {
         const resolved = await output;
         const outputFile = `${outputPath}.${resolved.extension}`;
         await fsp.writeFile(outputFile, resolved.binary);
@@ -387,11 +411,11 @@ cli
   });
 
 // Create a CLI option for each supported preprocessor
-for (const [ key, value ] of Object.entries(preprocessors)) {
+for (const [key, value] of Object.entries(preprocessors)) {
   cli.option(`--${key} [config]`, value.description);
 }
 // Create a CLI option for each supported encoder
-for (const [ key, value ] of Object.entries(encoders)) {
+for (const [key, value] of Object.entries(encoders)) {
   cli.option(
     `--${key} [config]`,
     `Use ${value.name} to generate a .${value.extension} file with the given configuration`,
@@ -400,7 +424,7 @@ for (const [ key, value ] of Object.entries(encoders)) {
 
 cli.version(
   `CLI version:        ${cliVersion}\n` +
-  `libSquoosh version: ${libVersion}\n` +
-  `Node version:       ${process.version}`,
+    `libSquoosh version: ${libVersion}\n` +
+    `Node version:       ${process.version}`,
 );
 cli.parse(process.argv);

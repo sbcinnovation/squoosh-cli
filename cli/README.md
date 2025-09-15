@@ -18,13 +18,13 @@ since been retired. This fork continues that work and has some bugs fixes.
 The Squoosh CLI can be used straight from the command line without installing using `npx`:
 
 ```
-$ npx @frostoven/squoosh-cli <options...>
+$ npx @sbcinnovation/squoosh-cli <options...>
 ```
 
 Of course, you can also install the Squoosh CLI:
 
 ```
-$ npm i -g @frostoven/squoosh-cli
+$ npm i -g @sbcinnovation/squoosh-cli
 $ squoosh-cli <options...>
 ```
 

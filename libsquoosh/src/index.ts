@@ -3,12 +3,19 @@ import { isMainThread } from 'worker_threads';
 import { codecs as encoders, preprocessors } from './codecs.js';
 import WorkerPool from './worker_pool.js';
 import { autoOptimize } from './auto-optimizer.js';
-import type ImageData from './image_data';
+import ImageData from './image_data.js';
 import JSON5 from 'json5';
 
 export { ImagePool, encoders, preprocessors };
 type EncoderKey = keyof typeof encoders;
 type PreprocessorKey = keyof typeof preprocessors;
+
+// Ensure ImageData exists in both main thread and worker environments
+// @ts-ignore
+if (typeof globalThis.ImageData === 'undefined') {
+  // @ts-ignore
+  (globalThis as any).ImageData = ImageData as any;
+}
 
 async function decodeFile({
   file,

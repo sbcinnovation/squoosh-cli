@@ -1,7 +1,7 @@
 # libSquoosh
 
 libSquoosh is an _experimental_ JavaScript backend used by its related
-[CLI package](https://www.npmjs.com/package/@frostoven/squoosh-cli). While you
+[CLI package](https://www.npmjs.com/package/@sbcinnovation/squoosh-cli). While you
 may use this library in your own projects, please beware that it's not
 considered production-ready for general use, and there are no immediate plans
 to make it so. If you use this package, you do so at your own risk.
@@ -22,13 +22,13 @@ since been retired. This fork continues that work and has some bug fixes.
 libSquoosh can be installed to your local project with the following command:
 
 ```
-$ npm install @frostoven/libsquoosh
+$ npm install @sbcinnovation/libsquoosh
 ```
 
 You can start using the libSquoosh by adding these lines to the top of your JS program:
 
 ```js
-import { ImagePool } from '@frostoven/libsquoosh';
+import { ImagePool } from '@sbcinnovation/libsquoosh';
 import { cpus } from 'os';
 const imagePool = new ImagePool(cpus().length);
 ```

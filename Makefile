@@ -15,16 +15,15 @@ help:
 
 # Install dependencies
 install:
-	cd libsquoosh && bun install
-	cd cli && bun install
+	bun install
 
 # Build the library (used by the CLI)
 build: install
-	cd libsquoosh && bun run build
+	bun run build
 
 # Development mode (uses the debug entry)
 dev: install
-	cd cli && bun ./src/debug.ts --webp '{}' ../codecs/example.png
+	bun run dev
 
 # Create portable scripts for Scoop and Unix environments
 binary: install
