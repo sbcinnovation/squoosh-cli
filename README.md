@@ -4,6 +4,8 @@
 
 A powerful command-line image converter and optimizer ✨
 
+![squoosh example](docs/assets/demo.png)
+
 Squoosh CLI is an image compression tool that reduces image sizes through numerous formats for the commandline.
 
 Based off Google's deprecated/removed CLI features from their
