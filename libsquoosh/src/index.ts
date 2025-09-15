@@ -17,6 +17,26 @@ if (typeof globalThis.ImageData === 'undefined') {
   (globalThis as any).ImageData = ImageData as any;
 }
 
+// Lightweight inline pool used when running as a single-file Bun binary where
+// spawning worker_threads with file paths is unreliable.
+class InlineWorkerPool<I, O> {
+  public numWorkers: number;
+  constructor() {
+    this.numWorkers = 1;
+  }
+  async join(): Promise<void> {
+    return;
+  }
+  dispatchJob(msg: I): Promise<O> {
+    // Reuse the same handler used by worker threads
+    // @ts-ignore
+    return Promise.resolve(handleJob(msg));
+  }
+  static useThisThreadAsWorker(): never {
+    throw new Error('Not supported');
+  }
+}
+
 async function decodeFile({
   file,
 }: {
@@ -267,7 +287,20 @@ class ImagePool {
    * @param {number} [threads] - Number of concurrent image processes to run in the pool.
    */
   constructor(threads: number) {
-    this.workerPool = new WorkerPool(threads, __filename);
+    const isBunSingle =
+      typeof (globalThis as any).Bun !== 'undefined' &&
+      typeof (globalThis as any).__SQUOOSH_EMBED_MAP !== 'undefined';
+    if (isBunSingle) {
+      // Avoid worker_threads in single-file binary; run inline
+      // @ts-ignore
+      this.workerPool = new InlineWorkerPool();
+    } else {
+      // Use module URL so Workers resolve within Bun and Node (when available)
+      this.workerPool = new WorkerPool(
+        threads,
+        (import.meta as any).url as unknown as string,
+      );
+    }
   }
 
   /**

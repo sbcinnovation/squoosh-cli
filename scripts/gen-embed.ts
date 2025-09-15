@@ -25,9 +25,11 @@ files.forEach((name, i) => {
     content += `import f${i} from '${rel}'\n`;
   }
 });
-content += `\nexport const __embedded = [${files
-  .map((_n, i) => `f${i}`)
-  .join(', ')}]\n`;
+content += `\nconst __map = {${files
+  .map((n, i) => `'${n}': f${i}`)
+  .join(',')}}\n`;
+content += `globalThis.__SQUOOSH_EMBED_MAP = __map\n`;
+content += `export const __embedded = Object.values(__map)\n`;
 
 await writeFile(outFile, content);
 console.log(`Embedded ${files.length} assets into ${outFile}`);

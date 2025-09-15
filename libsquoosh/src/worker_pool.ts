@@ -19,14 +19,14 @@ export default class WorkerPool<I, O> {
   public workerQueue: TransformStream<Worker, Worker>;
   public done: Promise<void>;
 
-  constructor(numWorkers: number, workerFile: string) {
+  constructor(numWorkers: number, workerFile: string | URL) {
     this.numWorkers = numWorkers;
     this.jobQueue = new TransformStream();
     this.workerQueue = new TransformStream();
 
     const writer = this.workerQueue.writable.getWriter();
     for (let i = 0; i < numWorkers; i++) {
-      writer.write(new Worker(workerFile));
+      writer.write(new Worker(workerFile as any));
     }
     writer.releaseLock();
 

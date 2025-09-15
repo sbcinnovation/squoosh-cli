@@ -18,8 +18,18 @@ export async function readBytes(
     try {
       const base = p.split('/').pop() as string;
       if (base) {
+        // Prefer direct embedded path
         const canonical = `libsquoosh/build/${base}`;
-        return await BunRef.file(canonical).arrayBuffer();
+        try {
+          return await BunRef.file(canonical).arrayBuffer();
+        } catch {}
+        // Fall back to a name map published by embed-assets.js if present
+        const map = (globalThis as any).__SQUOOSH_EMBED_MAP as
+          | Record<string, string>
+          | undefined;
+        if (map && map[base]) {
+          return await BunRef.file(map[base]).arrayBuffer();
+        }
       }
     } catch {}
     return await BunRef.file(p).arrayBuffer();
