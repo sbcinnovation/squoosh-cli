@@ -1,5 +1,5 @@
 {
-  "name": "@sbcinnovation/libsquoosh",
+  "name": "@frostoven/libsquoosh",
   "version": "0.4.8",
   "description": "The Bun backend of the Squoosh CLI package",
   "public": true,

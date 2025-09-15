@@ -10,7 +10,7 @@
     "url": "git@github.com:sbcinnovation/squoosh-cli.git"
   },
   "scripts": {
-    "dev": "bun ./src/debug.js --webp '{}' ../codecs/example.png"
+    "dev": "bun ./src/debug.ts --webp '{}' ../codecs/example.png"
   },
   "bin": {
     "squoosh-cli": "src/prod.js",

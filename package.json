@@ -1,6 +1,18 @@
 {
   "name": "sbc-squoosh-cli",
   "private": true,
+  "workspaces": [
+    "libsquoosh",
+    "cli"
+  ],
+  "scripts": {
+    "build": "bun run --cwd ./libsquoosh build",
+    "dev": "bun run --cwd ./cli dev",
+    "binary": "make binary",
+    "install-binary": "make install-binary",
+    "uninstall-binary": "make uninstall-binary",
+    "clean": "make clean"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
