@@ -4,10 +4,10 @@
   "description": "A CLI for Squoosh",
   "public": true,
   "type": "module",
-  "homepage": "https://squoosh.frostoven.com",
+  "homepage": "https://github.com/sbcinnovation/squoosh-cli",
   "repository": {
     "type": "git",
-    "url": "git@github.com:frostoven/Squoosh-with-CLI.git"
+    "url": "git@github.com:sbcinnovation/squoosh-cli.git"
   },
   "bin": {
     "squoosh-cli": "src/prod.js",
