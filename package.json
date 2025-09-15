@@ -5,6 +5,10 @@
   "scripts": {
     "build": "rollup -c ./libsquoosh/rollup.config.js",
     "dev": "bun run build && bun ./cli/src/debug.ts",
+    "dev:example:webp": "bun run dev -- --webp auto codecs/example.png -d examples/out",
+    "dev:example:avif": "bun run dev -- --avif auto codecs/example.png -d examples/out",
+    "dev:example:jxl": "bun run dev -- --jxl auto codecs/example.png -d examples/out",
+    "dev:example:all": "bun run dev -- --webp auto --avif auto --jxl auto codecs/example.png -d examples/out",
     "binary": "make binary",
     "install-binary": "make install-binary",
     "uninstall-binary": "make uninstall-binary",

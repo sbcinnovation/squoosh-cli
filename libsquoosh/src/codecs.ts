@@ -1,5 +1,9 @@
 import { promises as fsp } from 'fs';
-import { instantiateEmscriptenWasm, pathify } from './emscripten-utils.js';
+import {
+  instantiateEmscriptenWasm,
+  pathify,
+  readBytes,
+} from './emscripten-utils.js';
 import { threads } from 'wasm-feature-detect';
 import { cpus } from 'os';
 import ImageData from './image_data.js';
@@ -91,47 +95,17 @@ import wp2DecWasm from 'asset-url:../../codecs/wp2/dec/wp2_node_dec.wasm';
 // PNG
 import * as pngEncDec from '../../codecs/png/pkg/squoosh_png.js';
 import pngEncDecWasm from 'asset-url:../../codecs/png/pkg/squoosh_png_bg.wasm';
-const pngEncDecPromise = pngEncDec.default(
-  fsp
-    .readFile(pathify(pngEncDecWasm))
-    .then(
-      (b) =>
-        b.buffer.slice(
-          b.byteOffset,
-          b.byteOffset + b.byteLength,
-        ) as ArrayBuffer,
-    ),
-);
+const pngEncDecPromise = pngEncDec.default(readBytes(pngEncDecWasm));
 
 // OxiPNG
 import * as oxipng from '../../codecs/oxipng/pkg/squoosh_oxipng.js';
 import oxipngWasm from 'asset-url:../../codecs/oxipng/pkg/squoosh_oxipng_bg.wasm';
-const oxipngPromise = oxipng.default(
-  fsp
-    .readFile(pathify(oxipngWasm))
-    .then(
-      (b) =>
-        b.buffer.slice(
-          b.byteOffset,
-          b.byteOffset + b.byteLength,
-        ) as ArrayBuffer,
-    ),
-);
+const oxipngPromise = oxipng.default(readBytes(oxipngWasm));
 
 // Resize
 import * as resize from '../../codecs/resize/pkg/squoosh_resize.js';
 import resizeWasm from 'asset-url:../../codecs/resize/pkg/squoosh_resize_bg.wasm';
-const resizePromise = resize.default(
-  fsp
-    .readFile(pathify(resizeWasm))
-    .then(
-      (b) =>
-        b.buffer.slice(
-          b.byteOffset,
-          b.byteOffset + b.byteLength,
-        ) as ArrayBuffer,
-    ),
-);
+const resizePromise = resize.default(readBytes(resizeWasm));
 
 // rotate
 import rotateWasm from 'asset-url:../../codecs/rotate/rotate.wasm';
@@ -281,11 +255,7 @@ export const preprocessors = {
         const degrees = (numRotations * 90) % 360;
         const sameDimensions = degrees == 0 || degrees == 180;
         const size = width * height * 4;
-        const wasmBytes = await fsp.readFile(pathify(rotateWasm));
-        const wasmArrayBuffer = wasmBytes.buffer.slice(
-          wasmBytes.byteOffset,
-          wasmBytes.byteOffset + wasmBytes.byteLength,
-        ) as ArrayBuffer;
+        const wasmArrayBuffer = await readBytes(rotateWasm);
         const { instance } = (await WebAssembly.instantiate(
           wasmArrayBuffer,
         )) as unknown as { instance: RotateModuleInstance };
