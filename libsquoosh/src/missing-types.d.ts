@@ -34,10 +34,10 @@ declare module 'chunk-url:../../codecs/avif/enc/avif_node_enc_mt.worker.js' {
 // So, if we want to use those APIs we need to supply its dependencies ourselves
 // However, probably those APIs are more suited to be used in web (i.e. there can be other
 // dependencies to web APIs that might not work in Node)
-type RequestInfo = never;
-type Response = never;
-type WebGLRenderingContext = never;
-type MessageEvent = never;
+// type RequestInfo = never;
+// type Response = never;
+// type WebGLRenderingContext = never;
+// type MessageEvent = never;
 
-type BufferSource = ArrayBufferView | ArrayBuffer;
-type URL = import('url').URL;
+// type BufferSource = ArrayBufferView | ArrayBuffer;
+// type URL = import('url').URL;

@@ -6,14 +6,13 @@ import { cpus } from 'os';
 // We use `navigator.hardwareConcurrency` for Emscripten’s pthread pool size.
 // At this point exists more for backwards compatibility, modern Node disallows
 // setting this.
-const currentGlobal = (globalThis as any);
+const currentGlobal = globalThis as any;
 if (typeof currentGlobal?.navigator?.hardwareConcurrency === 'undefined') {
   try {
     currentGlobal.navigator = {
       hardwareConcurrency: cpus().length,
     };
-  }
-  catch (error) {
+  } catch (error) {
     console.warn('Warning: Failed to set navigator.hardwareConcurrency.');
   }
 }
@@ -48,8 +47,10 @@ interface ResizeInstantiateOptions {
 
 declare global {
   // Needed for being able to use ImageData as type in codec types
+  // @ts-ignore
   type ImageData = import('./image_data.js').default;
   // Needed for being able to assign to `globalThis.ImageData`
+  // @ts-ignore
   var ImageData: ImageData['constructor'];
 }
 
@@ -126,7 +127,7 @@ const imageQuantPromise: Promise<QuantizerModule> = instantiateEmscriptenWasm(
 
 // Our decoders currently rely on a `ImageData` global.
 import ImageData from './image_data.js';
-globalThis.ImageData = ImageData;
+globalThis.ImageData = ImageData as any;
 
 function resizeNameToIndex(name: string) {
   switch (name) {
