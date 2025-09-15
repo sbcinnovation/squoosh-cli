@@ -14,3 +14,5 @@ src/client/lazy-app/feature-meta/index.ts
 /.idea
 pnpm-lock.yaml
 /installer
+
+dist
