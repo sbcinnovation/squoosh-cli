@@ -75,7 +75,11 @@ async function encodeImage({
     const decoder = await encoders[encName].dec();
     const encode = (bitmapIn: ImageData, quality: number) =>
       encoder.encode(
-        bitmapIn.data,
+        new Uint8Array(
+          bitmapIn.data.buffer,
+          bitmapIn.data.byteOffset,
+          bitmapIn.data.byteLength,
+        ) as unknown as any,
         bitmapIn.width,
         bitmapIn.height,
         Object.assign({}, encoders[encName].defaultEncoderOptions as any, {
@@ -108,7 +112,11 @@ async function encodeImage({
     };
   } else {
     const result = encoder.encode(
-      bitmapIn.data.buffer as ArrayBuffer,
+      new Uint8Array(
+        bitmapIn.data.buffer,
+        bitmapIn.data.byteOffset,
+        bitmapIn.data.byteLength,
+      ) as unknown as any,
       bitmapIn.width,
       bitmapIn.height,
       encConfig,
@@ -184,9 +192,8 @@ class Image {
         preprocessorOptions = {
           ...preprocessors[preprocessorName].defaultOptions,
           ...JSON5.parse(options),
-        }
-      }
-      else {
+        };
+      } else {
         preprocessorOptions = {
           ...preprocessors[preprocessorName].defaultOptions,
           ...(options as object),

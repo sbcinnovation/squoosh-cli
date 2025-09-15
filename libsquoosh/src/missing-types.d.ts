@@ -40,4 +40,19 @@ declare module 'chunk-url:../../codecs/avif/enc/avif_node_enc_mt.worker.js' {
 // type MessageEvent = never;
 
 // type BufferSource = ArrayBufferView | ArrayBuffer;
+//
+// NOTE: Do not redeclare DOM lib types when using @types/node; they conflict.
+// Keep these commented unless targeting DOM-only env.
+// type ArrayBufferView =
+//   | Int8Array
+//   | Uint8Array
+//   | Uint8ClampedArray
+//   | Int16Array
+//   | Uint16Array
+//   | Int32Array
+//   | Uint32Array
+//   | Float32Array
+//   | Float64Array
+//   | DataView;
+// type BufferSource = ArrayBufferView | ArrayBuffer;
 // type URL = import('url').URL;

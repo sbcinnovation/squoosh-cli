@@ -2,6 +2,7 @@ import { promises as fsp } from 'fs';
 import { instantiateEmscriptenWasm, pathify } from './emscripten-utils.js';
 import { threads } from 'wasm-feature-detect';
 import { cpus } from 'os';
+import ImageData from './image_data.js';
 
 // We use `navigator.hardwareConcurrency` for Emscripten’s pthread pool size.
 // At this point exists more for backwards compatibility, modern Node disallows
@@ -45,14 +46,7 @@ interface ResizeInstantiateOptions {
   linearRGB: boolean;
 }
 
-declare global {
-  // Needed for being able to use ImageData as type in codec types
-  // @ts-ignore
-  type ImageData = import('./image_data.js').default;
-  // Needed for being able to assign to `globalThis.ImageData`
-  // @ts-ignore
-  var ImageData: ImageData['constructor'];
-}
+// Use local ImageData class explicitly; avoid augmenting global DOM types
 
 import type { QuantizerModule } from '../../codecs/imagequant/imagequant.js';
 
@@ -98,18 +92,46 @@ import wp2DecWasm from 'asset-url:../../codecs/wp2/dec/wp2_node_dec.wasm';
 import * as pngEncDec from '../../codecs/png/pkg/squoosh_png.js';
 import pngEncDecWasm from 'asset-url:../../codecs/png/pkg/squoosh_png_bg.wasm';
 const pngEncDecPromise = pngEncDec.default(
-  fsp.readFile(pathify(pngEncDecWasm)),
+  fsp
+    .readFile(pathify(pngEncDecWasm))
+    .then(
+      (b) =>
+        b.buffer.slice(
+          b.byteOffset,
+          b.byteOffset + b.byteLength,
+        ) as ArrayBuffer,
+    ),
 );
 
 // OxiPNG
 import * as oxipng from '../../codecs/oxipng/pkg/squoosh_oxipng.js';
 import oxipngWasm from 'asset-url:../../codecs/oxipng/pkg/squoosh_oxipng_bg.wasm';
-const oxipngPromise = oxipng.default(fsp.readFile(pathify(oxipngWasm)));
+const oxipngPromise = oxipng.default(
+  fsp
+    .readFile(pathify(oxipngWasm))
+    .then(
+      (b) =>
+        b.buffer.slice(
+          b.byteOffset,
+          b.byteOffset + b.byteLength,
+        ) as ArrayBuffer,
+    ),
+);
 
 // Resize
 import * as resize from '../../codecs/resize/pkg/squoosh_resize.js';
 import resizeWasm from 'asset-url:../../codecs/resize/pkg/squoosh_resize_bg.wasm';
-const resizePromise = resize.default(fsp.readFile(pathify(resizeWasm)));
+const resizePromise = resize.default(
+  fsp
+    .readFile(pathify(resizeWasm))
+    .then(
+      (b) =>
+        b.buffer.slice(
+          b.byteOffset,
+          b.byteOffset + b.byteLength,
+        ) as ArrayBuffer,
+    ),
+);
 
 // rotate
 import rotateWasm from 'asset-url:../../codecs/rotate/rotate.wasm';
@@ -125,9 +147,7 @@ const imageQuantPromise: Promise<QuantizerModule> = instantiateEmscriptenWasm(
   imageQuantWasm,
 );
 
-// Our decoders currently rely on a `ImageData` global.
-import ImageData from './image_data.js';
-globalThis.ImageData = ImageData as any;
+// Our decoders use the local ImageData class directly.
 
 function resizeNameToIndex(name: string) {
   switch (name) {
@@ -231,7 +251,13 @@ export const preprocessors = {
         { maxNumColors, dither }: { maxNumColors: number; dither: number },
       ) => {
         return new ImageData(
-          imageQuant.quantize(buffer, width, height, maxNumColors, dither),
+          imageQuant.quantize(
+            buffer as unknown as any,
+            width,
+            height,
+            maxNumColors,
+            dither,
+          ),
           width,
           height,
         );
@@ -255,9 +281,14 @@ export const preprocessors = {
         const degrees = (numRotations * 90) % 360;
         const sameDimensions = degrees == 0 || degrees == 180;
         const size = width * height * 4;
-        const instance = (
-          await WebAssembly.instantiate(await fsp.readFile(pathify(rotateWasm)))
-        ).instance as RotateModuleInstance;
+        const wasmBytes = await fsp.readFile(pathify(rotateWasm));
+        const wasmArrayBuffer = wasmBytes.buffer.slice(
+          wasmBytes.byteOffset,
+          wasmBytes.byteOffset + wasmBytes.byteLength,
+        ) as ArrayBuffer;
+        const { instance } = (await WebAssembly.instantiate(
+          wasmArrayBuffer,
+        )) as unknown as { instance: RotateModuleInstance };
         const { memory } = instance.exports;
         const additionalPagesNeeded = Math.ceil(
           (size * 2 - memory.buffer.byteLength + 8) / (64 * 1024),
