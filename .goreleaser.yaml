@@ -1,0 +1,92 @@
+project_name: squoosh
+
+before:
+  hooks:
+    - bun install
+    - bun run build
+
+builds:
+  - id: squoosh
+    builder: bun
+    binary: squoosh
+    main: cli/src/index.ts
+    dir: .
+    targets:
+      - linux-x64-modern
+      - linux-arm64
+      - darwin-x64
+      - darwin-arm64
+      - windows-x64-modern
+    flags:
+      - --compile
+      - --minify
+    env:
+      - NODE_ENV=production
+
+archives:
+  - id: archive
+    builds:
+      - squoosh
+    format_overrides:
+      - goos: windows
+        format: zip
+    name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+
+checksum:
+  name_template: 'checksums.txt'
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+
+brews:
+  - name: squoosh
+    repository:
+      owner: sbcinnovation
+      name: homebrew-tap
+    directory: Formula
+    commit_author:
+      name: goreleaser
+      email: actions@github.com
+    homepage: https://github.com/sbcinnovation/sbc-squoosh-cli
+    description: 'Squoosh CLI – image compression for the terminal'
+    license: MIT
+    test: |
+      system "#{bin}/squoosh", "--version"
+
+scoops:
+  - name: squoosh
+    repository:
+      owner: sbcinnovation
+      name: scoop-bucket
+      branch: main
+    directory: bucket
+    commit_author:
+      name: goreleaser
+      email: actions@github.com
+    homepage: https://github.com/sbcinnovation/sbc-squoosh-cli
+    description: 'Squoosh CLI – image compression for the terminal'
+    license: MIT
+
+nfpms:
+  - id: linux-packages
+    package_name: squoosh
+    file_name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+    formats:
+      - deb
+      - rpm
+    maintainer: SBC Innovation <opensource@sbcinnovation.com>
+    description: Squoosh CLI – image compression for the terminal
+    homepage: https://github.com/sbcinnovation/sbc-squoosh-cli
+    license: MIT
+    vendor: SBC Innovation
+    bindir: /usr/bin
+
+release:
+  prerelease: auto
+
+snapshot:
+  name_template: 'SNAPSHOT-{{ .ShortCommit }}'
