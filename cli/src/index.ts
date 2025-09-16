@@ -11,13 +11,14 @@ import type { Ora } from 'ora';
 import kleur from 'kleur';
 import EventEmitter from 'events';
 
+// Ensure embedded asset map is registered before libsquoosh initializes.
+// This allows libsquoosh to detect Bun single-file mode and avoid worker_threads.
+import '../../libsquoosh/build/embed-assets.js';
 import {
   ImagePool,
   preprocessors,
   encoders,
 } from '../../libsquoosh/build/index';
-// Force-embed libsquoosh wasm and worker assets into single-file binary when compiled
-import '../../libsquoosh/build/embed-assets.js';
 
 import PolyfillImageData from '../../libsquoosh/src/image_data';
 import type { Command } from 'commander';
@@ -410,9 +411,12 @@ cli
 
     try {
       await fsp.mkdir(outputDir, { recursive: true });
-    } catch (error) {
-      console.error(error);
-      return process.exit(1);
+    } catch (error: any) {
+      // Some environments may still throw EEXIST; ignore in that case
+      if (!(error && error.code === 'EEXIST')) {
+        console.error(error);
+        return process.exit(1);
+      }
     }
 
     if (!files || files.length === 0) {
