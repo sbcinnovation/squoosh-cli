@@ -427,8 +427,13 @@ for (const [key, value] of Object.entries(preprocessors)) {
 }
 // Create a CLI option for each supported encoder
 for (const [key, value] of Object.entries(encoders)) {
+  const flags = [`--${key} [config]`];
+  // Add alias using the actual output extension if different from encoder key
+  if (value.extension && value.extension !== key) {
+    flags.push(`--${value.extension} [config]`);
+  }
   cli.option(
-    `--${key} [config]`,
+    flags.join(', '),
     `Use ${value.name} to generate a .${value.extension} file with the given configuration`,
   );
 }
