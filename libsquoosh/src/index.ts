@@ -288,10 +288,14 @@ class ImagePool {
    * @param {number} [threads] - Number of concurrent image processes to run in the pool.
    */
   constructor(threads: number) {
-    const isBunSingle =
-      typeof (globalThis as any).Bun !== 'undefined' &&
+    const isBun = typeof (globalThis as any).Bun !== 'undefined';
+    const hasEmbeddedAssets =
       typeof (globalThis as any).__SQUOOSH_EMBED_MAP !== 'undefined';
-    if (isBunSingle) {
+    const isWindows =
+      typeof process !== 'undefined' && process.platform === 'win32';
+    // In Bun (especially Windows or single-file), prefer inline processing to avoid
+    // worker URL/path issues inside the compiled binary.
+    if (isBun && (hasEmbeddedAssets || isWindows)) {
       // Avoid worker_threads in single-file binary; run inline
       // @ts-ignore
       this.workerPool = new InlineWorkerPool();
