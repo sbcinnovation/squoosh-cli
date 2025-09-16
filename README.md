@@ -94,12 +94,6 @@ To develop for Squoosh (requires Bun):
    bun run dev
    ```
 
-### Build info
-
-**Important:** Always delete `.tmp` and `build` before doing a prod build, and
-delete `.tmp` if you're experiencing weird bugs during development. It appears
-to occasionally get corrupted by some process duplication.
-
 # Contributing
 
 Squoosh is an open-source project that appreciates all community involvement. To contribute to the project, follow the [contribute guide](/CONTRIBUTING.md).
