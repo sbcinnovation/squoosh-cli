@@ -1,4 +1,5 @@
 import { isMainThread } from 'worker_threads';
+import { pathToFileURL } from 'url';
 
 import { codecs as encoders, preprocessors } from './codecs.js';
 import WorkerPool from './worker_pool.js';
@@ -295,10 +296,19 @@ class ImagePool {
       // @ts-ignore
       this.workerPool = new InlineWorkerPool();
     } else {
-      // Use module URL so Workers resolve within Bun and Node (when available)
+      // Use an absolute file URL so Workers resolve correctly on Windows/Node/Bun
+      const workerFile =
+        typeof (globalThis as any).document === 'undefined'
+          ? pathToFileURL(__filename).href
+          : ((globalThis as any).document.currentScript &&
+              (
+                globalThis as any
+              ).document.currentScript.tagName.toUpperCase() === 'SCRIPT' &&
+              (globalThis as any).document.currentScript.src) ||
+            new URL('index.js', (globalThis as any).document.baseURI).href;
       this.workerPool = new WorkerPool(
         threads,
-        (import.meta as any).url as unknown as string,
+        workerFile as unknown as string,
       );
     }
   }
