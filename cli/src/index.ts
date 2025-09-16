@@ -403,22 +403,24 @@ cli
     'Target Butteraugli distance for auto optimizer',
     '1.4',
   )
-  .action((files: string[]) => {
+  .action(async (files: string[]) => {
     const opts = cli.opts() as unknown as CliOptions;
-    const outputDir = opts.outputDir;
+    const outputDir = path.resolve(opts.outputDir);
     const maxConcurrentFiles = parseInt(String(opts.maxConcurrentFiles));
-    fs.mkdir(outputDir, { recursive: true }, async (error) => {
-      if (error) {
-        console.error(error);
-        return process.exit(1);
-      }
-      if (!files || files.length === 0) {
-        console.log(kleur.yellow('No input files specified. Showing help...'));
-        cli.outputHelp();
-        return process.exit(0);
-      }
-      await processAllFiles(files, maxConcurrentFiles, opts);
-    });
+
+    try {
+      await fsp.mkdir(outputDir, { recursive: true });
+    } catch (error) {
+      console.error(error);
+      return process.exit(1);
+    }
+
+    if (!files || files.length === 0) {
+      console.log(kleur.yellow('No input files specified. Showing help...'));
+      cli.outputHelp();
+      return process.exit(0);
+    }
+    await processAllFiles(files, maxConcurrentFiles, { ...opts, outputDir });
   });
 
 // Create a CLI option for each supported preprocessor
