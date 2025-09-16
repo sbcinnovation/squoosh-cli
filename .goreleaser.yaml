@@ -23,6 +23,7 @@ builds:
       - --minify
     env:
       - NODE_ENV=production
+      - SQUOOSH_VERSION={{ .Version }}
 
 archives:
   - id: archive

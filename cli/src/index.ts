@@ -73,13 +73,64 @@ try {
     // @ts-ignore
     globalThis.ImageData = PolyfillImageData as any;
   }
-  const __filename = Bun.fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
-  const packageJson = JSON.parse(
-    fs.readFileSync(`${__dirname}/../../package.json`).toString(),
-  );
-  cliVersion = 'v' + packageJson.version;
-  libVersion = cliVersion;
+
+  let __filename: string;
+  let __dirname: string;
+
+  try {
+    // Try the standard approach first
+    __filename = Bun.fileURLToPath(import.meta.url);
+    __dirname = path.dirname(__filename);
+  } catch (error) {
+    // Fallback for compiled executables or when import.meta.url is not a valid file URL
+    // In compiled mode, we can use process.execPath or try alternative methods
+    if (
+      typeof import.meta.url === 'string' &&
+      import.meta.url.startsWith('file:')
+    ) {
+      // Try Node.js-style URL handling as fallback
+      const { fileURLToPath } = await import('url');
+      __filename = fileURLToPath(import.meta.url);
+      __dirname = path.dirname(__filename);
+    } else {
+      // Last resort: use process.execPath for compiled executables
+      __filename = process.execPath;
+      __dirname = path.dirname(__filename);
+    }
+  }
+
+  // Check if version is available from environment (set during build)
+  const envVersion = process.env.SQUOOSH_VERSION;
+  if (envVersion) {
+    cliVersion = envVersion.startsWith('v') ? envVersion : 'v' + envVersion;
+    libVersion = cliVersion;
+  } else {
+    // Try to read package.json, but handle the case where it doesn't exist (compiled mode)
+    let packageJson: any;
+    try {
+      packageJson = JSON.parse(
+        fs.readFileSync(`${__dirname}/../../package.json`).toString(),
+      );
+    } catch (packageError) {
+      // In compiled mode, try alternative locations or use embedded version info
+      try {
+        // Try from the executable directory
+        packageJson = JSON.parse(
+          fs
+            .readFileSync(
+              path.join(path.dirname(process.execPath), '../../package.json'),
+            )
+            .toString(),
+        );
+      } catch (altError) {
+        // If we can't find package.json anywhere, create a minimal version
+        packageJson = { version: 'unknown' };
+      }
+    }
+
+    cliVersion = 'v' + packageJson.version;
+    libVersion = cliVersion;
+  }
 } catch (_) {
   cliVersion = 'Version: unknown';
   libVersion = 'Version: unknown';
