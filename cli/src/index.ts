@@ -32,6 +32,7 @@ type DynamicCodecFlags = Partial<Record<EncoderKey | PreprocessorKey, string>>;
 interface CliOptions extends DynamicCodecFlags {
   outputDir: string;
   suffix: string;
+  inPlace: boolean;
   maxConcurrentFiles: string | number;
   maxOptimizerRounds: string | number;
   optimizerButteraugliTarget: string | number;
@@ -407,10 +408,17 @@ async function processBatch(
     jobsStarted++;
     const job = image.encode(encodeOptions).then(async () => {
       jobsFinished++;
-      const outputPath = path.join(
-        opts.outputDir,
-        path.basename(originalFile, path.extname(originalFile)) + opts.suffix,
-      );
+      const outputPath = opts.inPlace
+        ? path.join(
+            path.dirname(originalFile),
+            path.basename(originalFile, path.extname(originalFile)) +
+              opts.suffix,
+          )
+        : path.join(
+            opts.outputDir,
+            path.basename(originalFile, path.extname(originalFile)) +
+              opts.suffix,
+          );
       for (const output of Object.values(image.encodedWith) as Array<
         Promise<EncodedCoreResult>
       >) {
@@ -440,6 +448,10 @@ cli
   .arguments('[files...]')
   .option('-d, --output-dir <dir>', 'Output directory', '.')
   .option('-s, --suffix <suffix>', 'Append suffix to output files', '')
+  .option(
+    '-i, --in-place',
+    'Output files in their original directories (non-destructive)',
+  )
   .option(
     '-c, --max-concurrent-files <count>',
     'Amount of files to process at once (defaults to CPU cores)',
@@ -503,7 +515,7 @@ cli.version(
 (cli as any).showHelpAfterError?.(true);
 cli.addHelpText(
   'afterAll',
-  `\nExamples:\n  $ squoosh --avif auto image.jpg\n  $ squoosh --webp '{"quality":80}' assets/*.png\n  $ squoosh --resize '{"width":1200,"method":"lanczos3"}' --mozjpeg auto photos/\n  $ squoosh -d out -s .min --webp auto --avif '{"cqLevel":28}' images/**/*.{png,jpg,jpeg}\n\nNotes:\n  - Config accepts JSON/JSON5 (single quotes often help avoid shell escaping).\n  - Use your shell for globs (e.g. *.png) or pass directories to process all files within.\n  - Supported encoders: avif, webp, mozjpeg, jxl, wp2, oxipng.\n  - Preprocessors: resize, quant, rotate.`,
+  `\nExamples:\n  $ squoosh --avif auto image.jpg\n  $ squoosh --webp '{"quality":80}' assets/*.png\n  $ squoosh --resize '{"width":1200,"method":"lanczos3"}' --mozjpeg auto photos/\n  $ squoosh -d out -s .min --webp auto --avif '{"cqLevel":28}' images/**/*.{png,jpg,jpeg}\n  $ squoosh --in-place --webp auto **/*.png\n  $ squoosh --in-place --suffix .min --avif auto images/subfolder/*.jpg\n\nNotes:\n  - Config accepts JSON/JSON5 (single quotes often help avoid shell escaping).\n  - Use your shell for globs (e.g. *.png) or pass directories to process all files within.\n  - Use --in-place to output converted files alongside originals in their directories.\n  - Supported encoders: avif, webp, mozjpeg, jxl, wp2, oxipng.\n  - Preprocessors: resize, quant, rotate.`,
 );
 // If invoked without any args, show help immediately
 if (process.argv.length <= 2) {
