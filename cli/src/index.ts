@@ -515,7 +515,26 @@ cli.version(
 (cli as any).showHelpAfterError?.(true);
 cli.addHelpText(
   'afterAll',
-  `\nExamples:\n  $ squoosh --avif auto image.jpg\n  $ squoosh --webp '{"quality":80}' assets/*.png\n  $ squoosh --resize '{"width":1200,"method":"lanczos3"}' --mozjpeg auto photos/\n  $ squoosh -d out -s .min --webp auto --avif '{"cqLevel":28}' images/**/*.{png,jpg,jpeg}\n  $ squoosh --in-place --webp auto **/*.png\n  $ squoosh --in-place --suffix .min --avif auto images/subfolder/*.jpg\n\nNotes:\n  - Config accepts JSON/JSON5 (single quotes often help avoid shell escaping).\n  - Use your shell for globs (e.g. *.png) or pass directories to process all files within.\n  - Use --in-place to output converted files alongside originals in their directories.\n  - Supported encoders: avif, webp, mozjpeg, jxl, wp2, oxipng.\n  - Preprocessors: resize, quant, rotate.`,
+  `
+Examples:
+  $ squoosh --avif auto image.jpg
+  $ squoosh --webp '{"quality":80}' assets/*.png
+  $ squoosh --png '{"level":3}' assets/**/*.png
+  $ squoosh --resize '{"width":1200,"method":"lanczos3"}' --mozjpeg auto photos/
+  $ squoosh -d out -s .min --webp auto --avif '{"cqLevel":28}' images/**/*.{png,jpg,jpeg}
+  $ squoosh --in-place --webp auto **/*.png
+  $ squoosh --in-place --suffix .min --avif auto images/subfolder/*.jpg
+
+Notes:
+  - Config accepts JSON/JSON5 (single quotes often help avoid shell escaping).
+  - Use your shell for globs (e.g. *.png) or pass directories to process all files within.
+  - Use --in-place to output converted files alongside originals in their directories.
+  - Supported encoders: avif, webp, mozjpeg, jxl, wp2, oxipng.
+  - Preprocessors: resize, quant, rotate.
+  - PNG level: 1–6 (higher = smaller, slower).
+  - Quality (webp/mozjpeg/jxl/wp2): 0–100 (higher = better, larger).
+  - AVIF cqLevel: 0–62 (lower = better, 0 is near-lossless).
+  `,
 );
 // If invoked without any args, show help immediately
 if (process.argv.length <= 2) {
