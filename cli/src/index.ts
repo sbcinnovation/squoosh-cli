@@ -519,7 +519,7 @@ cli.addHelpText(
 Examples:
   $ squoosh --avif auto image.jpg
   $ squoosh --webp '{"quality":80}' assets/*.png
-  $ squoosh --png '{"level":3}' assets/**/*.png
+  $ squoosh --oxipng '{"level":3}' assets/**/*.png
   $ squoosh --resize '{"width":1200,"method":"lanczos3"}' --mozjpeg auto photos/
   $ squoosh -d out -s .min --webp auto --avif '{"cqLevel":28}' images/**/*.{png,jpg,jpeg}
   $ squoosh --in-place --webp auto **/*.png
